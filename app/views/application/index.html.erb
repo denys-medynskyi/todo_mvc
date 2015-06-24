@@ -1,0 +1,24 @@
+<h1>todos</h1>
+<div class="container">
+  <div ng-controller="MainCtrl">
+
+    <form name="createTodo" class="create-todo-form">
+      <input type="text" class="full-width input-padding" ng-model="newTodo.title" placeholder="What needs to be done ?" required ng-enter="createTodo.$valid && save()" ng-focus="toggleActive($event)" ng-blur="toggleActive($event)">
+    </form>
+
+    <div ng-repeat="todo in todos">
+      <form name="updateTodo">
+        <label class="full-width input-padding" ng-hide="isActive(todo)" ng-dblclick="setActiveTodo(todo);">{{todo.title}}</label>
+        <input class="full-width input-padding" ng-show="isActive(todo)" ng-model="activeTodo.title" type="text" class="active-input" required ng-blur="addReadonly($event)"  ng-enter="updateTodo.$valid && update(activeTodo)">
+      </form>
+
+      <b></b>
+    </div>
+
+    <!-- <div>
+      <input ng-model="currentTodo.title" ng-minLength="3" required>
+      <button ng-click="update(currentTodo)">update</button>
+    </div> -->
+
+  </div>
+</div>
