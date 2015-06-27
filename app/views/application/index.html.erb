@@ -1,24 +1,27 @@
-<h1>todos</h1>
-<div class="container">
-  <div ng-controller="MainCtrl">
+<header>
+  <h1>todos</h1>
+</header>
 
-    <form name="createTodo" class="create-todo-form">
-      <input type="text" class="full-width input-padding" ng-model="newTodo.title" placeholder="What needs to be done ?" required ng-enter="createTodo.$valid && save()" ng-focus="toggleActive($event)" ng-blur="toggleActive($event)">
+<div class="container center">
+  <div ng-controller="MainCtrl">
+    <form name="createTodo" ng-submit="createTodo.$valid && save(newTodo)">
+      <input class="create-todo-input" type="text" autofocus ng-model="newTodo.title" placeholder="What needs to be done ?" required>
     </form>
 
-    <div ng-repeat="todo in todos">
-      <form name="updateTodo">
-        <label class="full-width input-padding" ng-hide="isActive(todo)" ng-dblclick="setActiveTodo(todo);">{{todo.title}}</label>
-        <input class="full-width input-padding" ng-show="isActive(todo)" ng-model="activeTodo.title" type="text" class="active-input" required ng-blur="addReadonly($event)"  ng-enter="updateTodo.$valid && update(activeTodo)">
+    <div class="todo-container" ng-repeat="todo in todos | filter:statusFilter">
+      <form name="updateTodo" class="todo-form">
+        <input type="checkbox" ng-click="toggleChecked(todo)" ng-checked="todo.completed">
+        <label ng-hide="isActive(todo)" ng-dblclick="setActiveTodo(todo);">{{todo.title}}</label>
+        <input class="input-active"  show-focus="isActive(todo);" ng-show="isActive(todo);" ng-model="activeTodo.title" type="text" required ng-escape="resetChanges(activeTodo)" ng-enter="updateTodo.$valid && update(activeTodo)">
+        <a href class="delete-link" ng-click="delete(todo)">&times;</a>
       </form>
-
-      <b></b>
     </div>
 
-    <!-- <div>
-      <input ng-model="currentTodo.title" ng-minLength="3" required>
-      <button ng-click="update(currentTodo)">update</button>
-    </div> -->
+    <div class="actions">
+      <a href ng-click="setStatus('all')">all</a>
+      <a href ng-click="setStatus('active')">active</a>
+      <a href ng-click="setStatus('completed')">completed</a>
+    </div>
 
   </div>
 </div>

@@ -1,10 +1,10 @@
 class Api::V1::TodosController < ApplicationController
-  before_action :set_todo, only: [:show, :edit, :update, :destroy]
+  before_action :set_todo, only: [:show, :edit, :update, :destroy, :check, :uncheck]
 
   # GET /api/v1/todos
   # GET /api/v1/todos.json
   def index
-    @todos = Todo.all
+    @todos = Todo.order(:created_at)
     render json: @todos
   end
 
@@ -29,7 +29,7 @@ class Api::V1::TodosController < ApplicationController
     @todo = Todo.new(todo_params)
 
     if @todo.save
-      render json: {}, status: :created
+      render json: @todo, status: :created
     else
       render json: @todo.errors, status: :unprocessable_entity
     end
@@ -50,6 +50,16 @@ class Api::V1::TodosController < ApplicationController
   def destroy
     @todo.destroy
     render json: {}, status: 204
+  end
+
+  def check
+    @todo.check!
+    render json: {}, status: :ok
+  end
+
+  def uncheck
+    @todo.uncheck!
+    render json: {}, status: :ok
   end
 
   private

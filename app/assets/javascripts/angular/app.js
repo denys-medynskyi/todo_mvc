@@ -1,18 +1,29 @@
 var app = angular.module("app", ["ngResource"]);
 
 app.factory('Todo', ['$resource', function($resource) {
-return $resource('api/v1/todos/:id', null,
+return $resource('api/v1/todos/:id', {},
     {
         'update': { method:'PUT' }
     });
 }]);
+
+app.directive('showFocus', function($timeout) {
+  return function(scope, element, attrs) {
+    scope.$watch(attrs.showFocus,
+      function (newValue) {
+        $timeout(function() {
+            newValue && element.focus();
+        });
+      },true);
+  };
+});
 
 app.directive('ngEnter', function() {
         return function(scope, element, attrs) {
             element.bind("keydown keypress", function(event) {
                 if(event.which === 13) {
                         scope.$apply(function(){
-                                scope.$eval(attrs.ngEnter);
+                          scope.$eval(attrs.ngEnter);
                         });
 
                         event.preventDefault();
@@ -21,17 +32,29 @@ app.directive('ngEnter', function() {
         };
 });
 
+app.directive('ngEscape', function() {
+        return function(scope, element, attrs) {
+            element.bind("keydown keypress", function(event) {
+                if(event.which === 27) {
+                        scope.$apply(function(){
+                          scope.$eval(attrs.ngEscape);
+                        });
 
-app.controller("MainCtrl", function ($scope, Todo){
+                        event.preventDefault();
+                }
+            });
+        };
+});
+
+app.controller("MainCtrl", function ($scope, $http, Todo){
   // index
   $scope.todos = Todo.query();
-  $scope.createEnabled = true;
-  $scope.updateEnabled = false;
   // create
   $scope.newTodo = new Todo();
-  $scope.save = function(){
-    $scope.todos.push({title: $scope.newTodo.title});
-    $scope.newTodo.$save();
+  $scope.save = function(newTodo){
+    newTodo.$save(newTodo, function (response) {
+                              $scope.todos.push(response);
+                           });
     $scope.newTodo = new Todo();
   }
   // delete
@@ -40,36 +63,57 @@ app.controller("MainCtrl", function ($scope, Todo){
     _.remove($scope.todos, todo);
   }
 
-  // update
-  $scope.activeTodo = null;
-
-  $scope.setActiveTodo = function(todo){
-    console.log(todo);
-    $scope.activeTodo = angular.copy(todo);
-  };
-
-  $scope.isActive = function(todo){
-    return $scope.activeTodo != null && todo.id == $scope.activeTodo.id;
-  }
-
-  $scope.update = function(todo){
-    index = _.findIndex($scope.todos, todo);
-    $scope.todos = todo;
-    Todo.update({ id:todo.id }, todo);
+  $scope.update = function(editedTodo){
+    console.log(editedTodo);
+    index = _.findIndex($scope.todos, function(todo) {
+      return todo.id == editedTodo.id;
+    });
+    $scope.todos[index] = editedTodo;
+    Todo.update({ id: editedTodo.id }, editedTodo);
     $scope.activeTodo = null;
   }
 
-  // events
+  // active todo
+  $scope.activeTodo = null;
 
-  $scope.toggleActive = function(event) {
-    $(event.target).toggleClass("active-input");
+  $scope.isActive = function(todo) {
+    return $scope.activeTodo != undefined && $scope.activeTodo.id == todo.id;
   }
 
-  $scope.removeReadonly = function(event){
-    $(event.target).removeAttr("readonly");
+  $scope.setActiveTodo = function(todo) {
+    $scope.activeTodo = angular.copy(todo);
   }
 
-  $scope.addReadonly = function(event){
-    $(event.target).attr("readonly", "readonly");
+  $scope.resetChanges = function(editedTodo) {
+    $scope.activeTodo = null;
   }
+
+  $scope.toggleChecked = function(todo){
+    var action = '';
+    if(todo.completed){
+      action = 'uncheck'
+    } else {
+      action = 'check'
+    }
+    $http.put("api/v1/todos/" + todo.id + '/' + action);
+  }
+
+  $scope.$watch('status', function (status) {
+    console.log($scope.statusFilter);
+    switch (status) {
+      case 'all':
+        return $scope.statusFilter = undefined;
+      case "active":
+          $scope.statusFilter = {completed: null};
+          break;
+      case "completed":
+          $scope.statusFilter = {completed: true};
+          break;
+    }
+	});
+
+  $scope.setStatus = function(status) {
+    $scope.status = status;
+  }
+
 });

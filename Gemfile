@@ -41,6 +41,9 @@ group :development, :test do
   gem 'spring'
 end
 
+gem 'rails_12factor', group: :production
+
+
 # Angular
 source 'https://rails-assets.org' do
   gem 'rails-assets-angular'
